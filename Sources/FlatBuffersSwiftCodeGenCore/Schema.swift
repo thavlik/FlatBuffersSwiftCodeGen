@@ -301,22 +301,23 @@ extension Schema {
         result.append("")
         
         var visited = Visited()
-        guard let rootType = rootType?.ident.value,
-            let rootTable = lookup.tables[rootType] else {
-                fatalError("Root type \(self.rootType?.ident.value ?? "nil") is not a table")
-        }
+        //guard let rootType = rootType?.ident.value,
+        //      let rootTable = lookup.tables[rootType] else {
+        //        // This is NOT a fatal error. Root types are ENTIRELY optional
+        //        //fatalError("Root type \(self.rootType?.ident.value ?? "nil") is not a table")
+        //}
         func trace(result: StringBuilder, node: ASTNode, visited: Visited) {
             if let table = node as? Table {
                 guard visited.set.contains(table.name.value) == false else {
                     return
                 }
                 visited.insert(table.name.value)
-                if table.name.value == rootType,
-                    let fileIdentifier = fileIdent?.value.value {
-                    result.append(table.swift(lookup: lookup, isRoot: table.name.value == rootType, fileIdentifier: fileIdentifier))
-                } else {
-                    result.append(table.swift(lookup: lookup, isRoot: table.name.value == rootType))
-                }
+                //if table.name.value == rootType,
+                //    let fileIdentifier = fileIdent?.value.value {
+                //    result.append(table.swift(lookup: lookup, isRoot: table.name.value == rootType, fileIdentifier: fileIdentifier))
+                //} else {
+                    result.append(table.swift(lookup: lookup, isRoot: false))
+                //}
 
                 for f in table.fields {
                     if let ref = f.type.ref?.value {
@@ -365,7 +366,22 @@ extension Schema {
                 }
             }
         }
-        trace(result: result, node: rootTable, visited: visited)
+        for (name, obj) in lookup.structs {
+            print("Tracing struct \(name)")
+            trace(result: result, node: obj, visited: visited)
+        }
+        for (name, obj) in lookup.tables {
+            print("Tracing table \(name)")
+            trace(result: result, node: obj, visited: visited)
+        }
+        for (name, obj) in lookup.enums {
+            print("Tracing enum \(name)")
+            trace(result: result, node: obj, visited: visited)
+        }
+        for (name, obj) in lookup.unions {
+            print("Tracing union \(name)")
+            trace(result: result, node: obj, visited: visited)
+        }
         if self.hasRecursions {
             result.append("""
             fileprivate func performLateBindings(_ builder : FlatBuffersBuilder) throws {

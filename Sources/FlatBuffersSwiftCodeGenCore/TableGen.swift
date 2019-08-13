@@ -102,15 +102,15 @@ extension Table {
     
     public func fromDataExtenstion(lookup: IdentLookup, isRoot: Bool = false) -> String {
         func genPub() -> String {
-            if isRoot {
+            //if isRoot {
                 return """
                     public static func from(data: Data) -> \(name.value)? {
                         let reader = FlatBuffersMemoryReader(data: data, withoutCopy: false)
                         return \(name.value).from(selfReader: Direct<FlatBuffersMemoryReader>(reader: reader))
                     }
                 """
-            }
-            return ""
+            //}
+            //return ""
         }
         func genAssignmentStatements(fields: [Field]) -> String {
             let statements = fields.map { (field) -> String in
@@ -564,7 +564,7 @@ extension Table {
                         switch scalar {
                         case .bool:
                             statements.append("""
-                                    let \(f.fieldName) = object["\(f.fieldName)"] as? Bool
+                                    let \(f.fieldName) = object["\(f.fieldName)"] as? Bool ?? false
                             """)
                         case .f32:
                             statements.append("""
